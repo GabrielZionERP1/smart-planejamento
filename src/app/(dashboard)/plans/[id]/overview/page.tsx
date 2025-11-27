@@ -95,25 +95,25 @@ export default async function PlanOverviewPage({ params }: PlanOverviewPageProps
             title="Objetivos"
             value={overview.objectives_count}
             description="Objetivos estratégicos definidos"
-            icon={Target}
+            icon="Target"
           />
           <DashboardCard
             title="Planos de Ação"
             value={overview.action_plans_count}
             description="Total de planos de ação"
-            icon={ListTodo}
+            icon="ListTodo"
           />
           <DashboardCard
             title="Desdobramentos"
             value={overview.breakdowns_count}
             description="Total de desdobramentos"
-            icon={CheckSquare}
+            icon="CheckSquare"
           />
           <DashboardCard
             title="Atrasados"
             value={overview.late_breakdowns}
             description="Desdobramentos com atraso"
-            icon={AlertTriangle}
+            icon="AlertTriangle"
           />
         </StatsGrid>
       </DashboardSection>
