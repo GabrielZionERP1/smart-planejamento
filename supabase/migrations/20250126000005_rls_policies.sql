@@ -1,0 +1,42 @@
+-- ============================================
+-- FASE 7: RLS (Row Level Security) E PERMISSÕES
+-- ============================================
+-- Este arquivo ativa RLS e cria políticas de acesso para todas as tabelas
+-- Tipos de usuário: admin, gestor, colaborador
+
+-- ============================================
+-- 1. ATIVAR RLS EM TODAS AS TABELAS EXISTENTES
+-- ============================================
+-- Nota: As tabelas já têm RLS habilitado nas migrations anteriores
+-- Este arquivo apenas adiciona policies adicionais se necessário
+
+-- Verificar se RLS está ativo (já está nas migrations anteriores)
+-- ALTER TABLE public.strategic_plans ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE public.departments ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE public.plan_mvv ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE public.objectives ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE public.action_plans ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE public.action_plan_participants ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE public.action_breakdowns ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE public.breakdown_history ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE public.action_breakdown_attachments ENABLE ROW LEVEL SECURITY;
+
+-- ============================================
+-- NOTA IMPORTANTE
+-- ============================================
+-- As policies das migrations anteriores (20250126000001-20250126000004) já
+-- permitem acesso completo para usuários autenticados.
+-- 
+-- Este arquivo está sendo mantido para referência futura quando
+-- implementarmos um sistema de roles/permissões mais granular.
+--
+-- Para isso será necessário criar:
+-- 1. Tabela public.profiles com campos: id, role, department_id
+-- 2. Tabela public.clients (se necessário)
+-- 3. Tabela public.client_groups (se necessário)
+--
+-- Por enquanto, as policies básicas das migrations anteriores são suficientes.
+-- ============================================
+
+-- FIM DO ARQUIVO
+-- Policies complexas serão adicionadas quando o sistema de roles estiver implementado

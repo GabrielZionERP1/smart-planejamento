@@ -261,16 +261,25 @@ CREATE POLICY "gestores_criam_planejamentos" ON planejamentos
 
 ## Boas Práticas para AI Agents
 
+### ⚠️ REGRA CRÍTICA: NUNCA RECRIAR ARQUIVOS EXISTENTES
+- **SEMPRE** verificar se um arquivo já existe antes de tentar criá-lo
+- **SEMPRE** usar ferramentas de edição (`replace_string_in_file`, `multi_replace_string_in_file`) para modificar arquivos existentes
+- **NUNCA** usar `create_file` em arquivos que já existem no projeto
+- Se um arquivo precisa ser atualizado: ler, analisar e modificar incrementalmente
+- Preservar todo o código existente e adicionar/ajustar apenas o necessário
+
 ### Ao Criar Funcionalidades
 1. Sempre considerar a metodologia SMART na implementação
 2. Incluir validações de dados relacionados a objetivos e métricas
 3. Priorizar usabilidade e clareza na interface
 4. Documentar decisões arquiteturais importantes
+5. Verificar arquivos existentes antes de criar novos
 
 ### Ao Sugerir Melhorias
 - Focar em facilitar o processo de planejamento estratégico
 - Considerar escalabilidade para múltiplos projetos/departamentos
 - Propor visualizações que ajudem na tomada de decisão
+- Trabalhar incrementalmente em arquivos existentes
 
 ### Contexto de Negócio
 - Este é um sistema voltado para **gestão empresarial**

@@ -1,24 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SMART - Sistema de Planejamento Estratégico
 
-## Getting Started
+Sistema completo de gestão de planejamento estratégico em 4 níveis hierárquicos:
+1. **Planejamento** - Plano macro com períodos definidos
+2. **Visão Estratégica** - Missão, visão, valores e objetivos
+3. **Planos de Ação** - Ações SMART vinculadas aos objetivos
+4. **Desdobramentos** - Subatividades com histórico e progresso
 
-First, run the development server:
+## ✨ Novidades - Fase 8
+
+**Sistema de Design Completo Implementado!**
+
+- 🎨 Design System robusto com tokens padronizados
+- 🌙 Dark Mode completo (light/dark/system)
+- ✨ 20+ animações suaves com Framer Motion
+- 🔔 Sistema de toasts elegantes
+- 📱 Componentes responsivos e acessíveis
+- 🚀 Performance otimizada com loading states
+- 📝 FormFields padronizados
+- 🎯 UserAvatars e StatusBadges
+
+## 🚀 Stack Tecnológico
+
+- **Framework**: Next.js 14 (App Router)
+- **Linguagem**: TypeScript
+- **Estilização**: TailwindCSS + shadcn/ui
+- **Animações**: Framer Motion
+- **Toasts**: Sonner
+- **Backend**: Supabase (PostgreSQL + Auth + RLS)
+- **Formulários**: React Hook Form + Zod
+- **Ícones**: Lucide React
+
+## 📋 Pré-requisitos
+
+- Node.js 18+ instalado
+- Conta no [Supabase](https://supabase.com)
+- Git (opcional)
+
+## ⚙️ Configuração Inicial
+
+### 1. Instalar Dependências
+
+```bash
+npm install
+```
+
+### 2. Configurar Supabase
+
+1. Crie um novo projeto no [Supabase](https://supabase.com)
+2. Copie as credenciais do projeto
+3. Renomeie `.env.local` e adicione suas credenciais:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=sua_url_do_supabase
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_chave_anon
+```
+
+### 3. Criar Schema do Banco
+
+Execute a migration inicial no SQL Editor do Supabase:
+```bash
+# Copie o conteúdo de: supabase/migrations/20250126000000_initial_schema.sql
+# Cole no SQL Editor do Supabase e execute
+```
+
+Ou use o Supabase CLI (recomendado):
+```bash
+npx supabase login
+npx supabase link --project-ref seu-project-ref
+npx supabase db push
+```
+
+## 🏃 Executar o Projeto
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Abra [http://localhost:3000](http://localhost:3000) no navegador.
 
 ## Learn More
 
