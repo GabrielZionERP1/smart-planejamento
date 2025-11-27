@@ -28,13 +28,13 @@ const mainNavItems: NavItem[] = [
     title: 'Dashboard',
     href: '/',
     icon: LayoutDashboard,
-    roles: ['admin', 'gestor', 'colaborador'],
+    roles: ['admin', 'gestor', 'usuario'],
   },
   {
     title: 'Planejamentos',
     href: '/plans',
     icon: FolderKanban,
-    roles: ['admin', 'gestor', 'colaborador'],
+    roles: ['admin', 'gestor', 'usuario'],
   },
 ]
 
