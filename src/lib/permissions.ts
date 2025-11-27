@@ -4,13 +4,13 @@
  * Este módulo implementa funções para verificar permissões baseadas em roles:
  * - admin: acesso total
  * - gestor: acesso departamental
- * - colaborador: acesso limitado aos próprios registros
+ * - usuario: acesso limitado aos próprios registros
  */
 
 import { createClient } from './supabase/client'
 import { Profile, StrategicPlan, ActionPlan, ActionBreakdown } from './types'
 
-export type UserRole = 'admin' | 'gestor' | 'colaborador'
+export type UserRole = 'admin' | 'gestor' | 'usuario'
 
 /**
  * Busca o perfil completo do usuário logado
@@ -59,7 +59,7 @@ export async function isManager(): Promise<boolean> {
  */
 export async function isCollaborator(): Promise<boolean> {
   const role = await getUserRole()
-  return role === 'colaborador'
+  return role === 'usuario'
 }
 
 /**
@@ -87,8 +87,8 @@ export async function canEditPlan(
     return !!data
   }
 
-  // Colaborador pode editar se for owner de algum action_plan no plano
-  if (user.role === 'colaborador') {
+  // Usuário pode editar se for owner de algum action_plan no plano
+  if (user.role === 'usuario') {
     const supabase = createClient()
     const { data } = await supabase
       .from('action_plans')
