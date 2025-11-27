@@ -308,9 +308,11 @@ export interface BreakdownAttachment {
 export interface UpcomingTask {
   id: string
   title: string
+  description?: string
   due_date: string
   type: 'plan' | 'breakdown'
   status: string
+  progress?: number
 }
 
 export interface UserDashboardData {
