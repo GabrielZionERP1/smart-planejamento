@@ -75,13 +75,13 @@ export async function canEditPlan(
   }
 
   // Gestor pode editar se o departamento dele faz parte do plano
-  if (user.role === 'gestor' && user.department_id) {
+  if (user.role === 'gestor' && user.departamento_id) {
     const supabase = createClient()
     const { data } = await supabase
       .from('plan_departments')
       .select('id')
       .eq('plan_id', plan.id)
-      .eq('department_id', user.department_id)
+      .eq('department_id', user.departamento_id)
       .single()
 
     return !!data
@@ -134,8 +134,8 @@ export async function canEditActionPlan(
   }
 
   // Gestor pode editar se o plano pertence ao seu departamento
-  if (user.role === 'gestor' && user.department_id) {
-    return actionPlan.department_id === user.department_id
+  if (user.role === 'gestor' && user.departamento_id) {
+    return actionPlan.department_id === user.departamento_id
   }
 
   // Owner pode editar seu próprio plano
@@ -166,8 +166,8 @@ export async function canDeleteActionPlan(
   }
 
   // Gestor pode deletar se o plano pertence ao seu departamento
-  if (user.role === 'gestor' && user.department_id) {
-    return actionPlan.department_id === user.department_id
+  if (user.role === 'gestor' && user.departamento_id) {
+    return actionPlan.department_id === user.departamento_id
   }
 
   return false
@@ -186,7 +186,7 @@ export async function canEditBreakdown(
   }
 
   // Gestor pode editar se o breakdown pertence a um action_plan do seu departamento
-  if (user.role === 'gestor' && user.department_id) {
+  if (user.role === 'gestor' && user.departamento_id) {
     const supabase = createClient()
     const { data: actionPlan } = await supabase
       .from('action_plans')
@@ -194,7 +194,7 @@ export async function canEditBreakdown(
       .eq('id', breakdown.action_plan_id)
       .single()
 
-    return actionPlan?.department_id === user.department_id
+    return actionPlan?.department_id === user.departamento_id
   }
 
   // Executor pode editar seu próprio breakdown
@@ -241,7 +241,7 @@ export async function canDeleteBreakdown(
   }
 
   // Gestor pode deletar se o breakdown pertence a um action_plan do seu departamento
-  if (user.role === 'gestor' && user.department_id) {
+  if (user.role === 'gestor' && user.departamento_id) {
     const supabase = createClient()
     const { data: actionPlan } = await supabase
       .from('action_plans')
@@ -249,7 +249,7 @@ export async function canDeleteBreakdown(
       .eq('id', breakdown.action_plan_id)
       .single()
 
-    return actionPlan?.department_id === user.department_id
+    return actionPlan?.department_id === user.departamento_id
   }
 
   return false
@@ -356,13 +356,13 @@ export async function canEditObjectives(
   }
 
   // Gestor pode editar objetivos de planejamentos do seu departamento
-  if (user.role === 'gestor' && user.department_id) {
+  if (user.role === 'gestor' && user.departamento_id) {
     const supabase = createClient()
     const { data } = await supabase
       .from('plan_departments')
       .select('id')
       .eq('plan_id', planId)
-      .eq('department_id', user.department_id)
+      .eq('department_id', user.departamento_id)
       .single()
 
     return !!data
