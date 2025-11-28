@@ -1,4 +1,5 @@
 import { supabaseClient } from './supabaseClient'
+import { getCurrentUserCompanyId } from './auth'
 
 export interface Department {
   id: string
@@ -16,11 +17,18 @@ export interface DepartmentFormData {
  */
 export async function getDepartments(): Promise<Department[]> {
   const supabase = supabaseClient
+  const companyId = await getCurrentUserCompanyId()
   
-  const { data, error } = await supabase
+  let query = supabase
     .from('departments')
     .select('*')
     .order('name', { ascending: true })
+
+  if (companyId) {
+    query = query.eq('company_id', companyId)
+  }
+
+  const { data, error } = await query
   
   if (error) {
     console.error('Erro ao buscar departamentos:', error)
@@ -55,11 +63,13 @@ export async function getDepartmentById(id: string): Promise<Department | null> 
  */
 export async function createDepartment(formData: DepartmentFormData): Promise<Department> {
   const supabase = supabaseClient
+  const companyId = await getCurrentUserCompanyId()
   
   const { data, error } = await supabase
     .from('departments')
     .insert([{
       name: formData.name,
+      company_id: companyId,
     }])
     .select()
     .single()

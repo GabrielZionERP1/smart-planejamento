@@ -2,13 +2,23 @@
 // USER & AUTH TYPES
 // ============================================
 
+export interface Company {
+  id: string
+  name: string
+  document?: string | null
+  logo_url?: string | null
+  created_at: string
+  updated_at: string | null
+}
+
 export interface Profile {
   id: string
   email: string
   nome: string
   avatar_url?: string
   departamento_id?: string
-  role: 'admin' | 'gestor' | 'usuario'
+  role: 'superadmin' | 'admin' | 'gestor' | 'usuario'
+  company_id?: string
   created_at: string
   updated_at: string
 }
@@ -20,6 +30,7 @@ export interface Profile {
 export interface Department {
   id: string
   name: string
+  company_id?: string
   created_at: string
   updated_at: string | null
 }
@@ -30,6 +41,7 @@ export interface Client {
   email?: string
   telefone?: string
   endereco?: string
+  company_id?: string
   created_at: string
   updated_at: string
 }
@@ -46,6 +58,7 @@ export interface StrategicPlan {
   execution_start?: string | null
   execution_end?: string | null
   created_by?: string | null
+  company_id?: string
   created_at: string
   updated_at: string | null
 }
@@ -67,6 +80,7 @@ export interface Objective {
   summary?: string | null
   status: string
   position: number
+  company_id?: string
   created_at: string
   updated_at: string | null
 }
@@ -114,6 +128,7 @@ export interface ActionPlan {
   responsavel?: string
   status: 'nao_iniciado' | 'em_andamento' | 'concluido' | 'atrasado' | 'cancelado'
   progresso_percentual: number
+  company_id?: string
   created_at: string
   updated_at: string
 }
@@ -253,6 +268,7 @@ export interface ActionPlan {
   end_date?: string | null
   status: 'nao_iniciado' | 'em_andamento' | 'concluido' | 'cancelado' | 'atrasado'
   progress: number
+  company_id?: string
   created_at: string
   updated_at: string
 }
@@ -278,6 +294,7 @@ export interface ActionBreakdown {
   effort: number
   status: 'nao_iniciado' | 'em_andamento' | 'concluido' | 'cancelado' | 'atrasado'
   is_completed: boolean
+  company_id?: string
   created_at: string
   updated_at: string
 }

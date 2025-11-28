@@ -1,6 +1,6 @@
 import { createClient } from './supabase/client'
 import { StrategicPlan, StrategicPlanFormData } from './types'
-import { getCurrentUser } from './auth'
+import { getCurrentUser, getCurrentUserCompanyId } from './auth'
 
 // Criar cliente Supabase com sessão do usuário
 function getSupabaseClient() {
@@ -20,10 +20,19 @@ export interface PaginatedResponse<T> {
  */
 export async function getStrategicPlans(): Promise<StrategicPlan[]> {
   const supabase = getSupabaseClient()
-  const { data, error } = await supabase
+  const companyId = await getCurrentUserCompanyId()
+  
+  let query = supabase
     .from('strategic_plans')
     .select('*')
     .order('created_at', { ascending: false })
+
+  // Filtrar por empresa se o usuário tiver company_id
+  if (companyId) {
+    query = query.eq('company_id', companyId)
+  }
+
+  const { data, error } = await query
 
   if (error) {
     throw new Error(`Erro ao buscar planejamentos: ${error.message}`)
@@ -40,14 +49,22 @@ export async function getStrategicPlansPaginated(
   pageSize = 10
 ): Promise<PaginatedResponse<StrategicPlan>> {
   const supabase = getSupabaseClient()
+  const companyId = await getCurrentUserCompanyId()
   const from = (page - 1) * pageSize
   const to = from + pageSize - 1
 
-  const { data, error, count } = await supabase
+  let query = supabase
     .from('strategic_plans')
     .select('*', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(from, to)
+
+  // Filtrar por empresa se o usuário tiver company_id
+  if (companyId) {
+    query = query.eq('company_id', companyId)
+  }
+
+  const { data, error, count } = await query
 
   if (error) {
     throw new Error(`Erro ao buscar planejamentos: ${error.message}`)
@@ -92,11 +109,13 @@ export async function createStrategicPlan(
   payload: StrategicPlanFormData
 ): Promise<StrategicPlan> {
   let userId: string | null = null
+  let companyId: string | null = null
 
   try {
     const user = await getCurrentUser()
     userId = user?.id || null
-    console.log('👤 Usuário obtido para criação:', userId)
+    companyId = await getCurrentUserCompanyId()
+    console.log('👤 Usuário obtido para criação:', userId, 'Empresa:', companyId)
   } catch (error) {
     console.error('⚠️ Erro ao obter usuário:', error)
     // Se não conseguir obter o usuário, continua sem o created_by
@@ -109,6 +128,7 @@ export async function createStrategicPlan(
     execution_start: payload.execution_start || null,
     execution_end: payload.execution_end || null,
     created_by: userId,
+    company_id: companyId,
   }
 
   console.log('📤 Dados a inserir:', insertData)

@@ -18,6 +18,7 @@ import { AlertCircle, CheckCircle2 } from 'lucide-react'
 interface InviteUserFormData {
   email: string
   nome: string
+  password: string
   department_id?: string
   role: 'admin' | 'gestor' | 'usuario'
 }
@@ -31,6 +32,7 @@ export function InviteUserForm({ onSubmit, onCancel }: InviteUserFormProps) {
   const [formData, setFormData] = useState<InviteUserFormData>({
     email: '',
     nome: '',
+    password: '',
     department_id: undefined,
     role: 'usuario',
   })
@@ -63,6 +65,10 @@ export function InviteUserForm({ onSubmit, onCancel }: InviteUserFormProps) {
       setError('O nome é obrigatório')
       return
     }
+    if (!formData.password || formData.password.length < 6) {
+      setError('A senha deve ter no mínimo 6 caracteres')
+      return
+    }
 
     // Validar formato de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -75,7 +81,7 @@ export function InviteUserForm({ onSubmit, onCancel }: InviteUserFormProps) {
     try {
       await onSubmit(formData)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao convidar usuário')
+      setError(err instanceof Error ? err.message : 'Erro ao criar usuário')
     } finally {
       setIsSubmitting(false)
     }
@@ -86,9 +92,21 @@ export function InviteUserForm({ onSubmit, onCancel }: InviteUserFormProps) {
       <Alert>
         <CheckCircle2 className="h-4 w-4" />
         <AlertDescription className="text-sm">
-          Um e-mail de convite será enviado para o usuário com instruções para criar sua senha.
+          O usuário será criado imediatamente e poderá fazer login com a senha definida.
         </AlertDescription>
       </Alert>
+
+      <div className="space-y-3">
+        <Label htmlFor="nome">Nome Completo *</Label>
+        <Input
+          id="nome"
+          value={formData.nome}
+          onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+          placeholder="Nome do usuário"
+          disabled={isSubmitting}
+          required
+        />
+      </div>
 
       <div className="space-y-3">
         <Label htmlFor="email">E-mail *</Label>
@@ -104,12 +122,14 @@ export function InviteUserForm({ onSubmit, onCancel }: InviteUserFormProps) {
       </div>
 
       <div className="space-y-3">
-        <Label htmlFor="nome">Nome Completo *</Label>
+        <Label htmlFor="password">Senha *</Label>
         <Input
-          id="nome"
-          value={formData.nome}
-          onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-          placeholder="Nome do usuário"
+          id="password"
+          type="password"
+          value={formData.password}
+          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+          placeholder="Mínimo 6 caracteres"
+          minLength={6}
           disabled={isSubmitting}
           required
         />
@@ -187,7 +207,7 @@ export function InviteUserForm({ onSubmit, onCancel }: InviteUserFormProps) {
           Cancelar
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Enviando convite...' : 'Enviar Convite'}
+          {isSubmitting ? 'Criando usuário...' : 'Criar Usuário'}
         </Button>
       </div>
     </form>

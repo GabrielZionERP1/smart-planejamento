@@ -24,32 +24,57 @@ export interface UserProfileFormData {
 export interface InviteUserData {
   email: string
   nome: string
+  password: string
   department_id?: string
   role: 'admin' | 'gestor' | 'usuario'
 }
 
 /**
- * Convida um novo usuário via email
- * O usuário receberá um email para criar sua senha
+ * Cria um novo usuário diretamente com senha
+ * Usa a API Route para criar com Admin API (sem afetar sessão atual)
  */
 export async function inviteUser(data: InviteUserData): Promise<void> {
+  // Obter company_id do usuário atual
   const supabase = supabaseClient
+  const { data: { user } } = await supabase.auth.getUser()
   
-  // Criar usuário no Supabase Auth
-  const { error: authError } = await supabase.auth.admin.inviteUserByEmail(data.email, {
-    data: {
-      nome: data.nome,
-      department_id: data.department_id || null,
-      role: data.role,
-    },
-  })
-  
-  if (authError) {
-    console.error('Erro ao convidar usuário:', authError)
-    throw new Error('Não foi possível enviar o convite. Verifique se o e-mail já não está cadastrado.')
+  if (!user) {
+    throw new Error('Usuário não autenticado')
   }
 
-  // O profile será criado automaticamente via trigger quando o usuário aceitar o convite
+  // Buscar company_id do profile do usuário atual
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('company_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile?.company_id) {
+    throw new Error('Empresa não encontrada')
+  }
+
+  // Chamar API Route que usa Admin API
+  const response = await fetch('/api/admin/create-user', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email: data.email,
+      password: data.password,
+      name: data.nome,
+      company_id: profile.company_id,
+      role: data.role,
+      department_id: data.department_id || null,
+    }),
+  })
+
+  const result = await response.json()
+
+  if (!response.ok || !result.success) {
+    console.error('Erro ao criar usuário:', result.error)
+    throw new Error(result.error || 'Não foi possível criar o usuário')
+  }
 }
 
 /**

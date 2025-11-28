@@ -19,6 +19,7 @@ import { logout, getCurrentUser } from '@/lib/auth'
 import { getInitials } from '@/lib/ui/ui.helpers'
 import toast from '@/lib/ui/toast'
 import type { User } from '@supabase/supabase-js'
+import { CompanySwitcher } from './CompanySwitcher'
 
 export function AppHeader() {
   const router = useRouter()
@@ -48,8 +49,11 @@ export function AppHeader() {
           </h2>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <ThemeToggle />
+        <div className="flex items-center space-x-4">
+          <CompanySwitcher />
+          
+          <div className="flex items-center space-x-2">
+            <ThemeToggle />
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -82,6 +86,7 @@ export function AppHeader() {
               <UserIcon className="h-5 w-5" />
             </Button>
           )}
+          </div>
         </div>
       </div>
     </header>

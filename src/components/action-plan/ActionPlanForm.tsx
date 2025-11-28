@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { FormField, TextareaField, SelectField } from '@/components/ui/FormField'
-import { actionPlanSchema, ActionPlanSchema } from '@/lib/schemas'
+import { actionPlanSchema, ActionPlanSchema, createActionPlanSchemaWithDateValidation } from '@/lib/schemas'
 import { Objective } from '@/lib/types'
 
 interface ActionPlanFormProps {
@@ -13,6 +13,8 @@ interface ActionPlanFormProps {
   objectives: Objective[]
   initialData?: Partial<ActionPlanSchema & { participant_ids?: string[] }>
   loading?: boolean
+  planStartDate?: string | null
+  planEndDate?: string | null
 }
 
 export function ActionPlanForm({
@@ -21,13 +23,19 @@ export function ActionPlanForm({
   objectives,
   initialData,
   loading = false,
+  planStartDate,
+  planEndDate,
 }: ActionPlanFormProps) {
+  const schema = planStartDate || planEndDate 
+    ? createActionPlanSchemaWithDateValidation(planStartDate, planEndDate)
+    : actionPlanSchema
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<ActionPlanSchema>({
-    resolver: zodResolver(actionPlanSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       objective_id: initialData?.objective_id || '',
       title: initialData?.title || '',

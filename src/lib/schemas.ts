@@ -105,6 +105,38 @@ export const actionPlanSchema = z.object({
 
 export type ActionPlanSchema = z.infer<typeof actionPlanSchema>
 
+/**
+ * Cria schema de ActionPlan com validação de datas contra o plano estratégico
+ */
+export function createActionPlanSchemaWithDateValidation(
+  planStartDate?: string | null,
+  planEndDate?: string | null
+) {
+  return actionPlanSchema
+    .refine((data) => {
+      if (data.start_date && planStartDate) {
+        const actionStart = new Date(data.start_date)
+        const planStart = new Date(planStartDate)
+        return actionStart >= planStart
+      }
+      return true
+    }, {
+      message: 'A data de início não pode ser anterior à data de início do planejamento estratégico',
+      path: ['start_date'],
+    })
+    .refine((data) => {
+      if (data.end_date && planEndDate) {
+        const actionEnd = new Date(data.end_date)
+        const planEnd = new Date(planEndDate)
+        return actionEnd <= planEnd
+      }
+      return true
+    }, {
+      message: 'A data de término não pode ser posterior à data de término do planejamento estratégico',
+      path: ['end_date'],
+    })
+}
+
 // ============================================
 // FASE 5: ACTION BREAKDOWNS SCHEMA
 // ============================================
@@ -160,3 +192,35 @@ export const breakdownSchema = z.object({
 })
 
 export type BreakdownSchema = z.infer<typeof breakdownSchema>
+
+/**
+ * Cria schema de Breakdown com validação de datas contra o plano de ação
+ */
+export function createBreakdownSchemaWithDateValidation(
+  actionStartDate?: string | null,
+  actionEndDate?: string | null
+) {
+  return breakdownSchema
+    .refine((data) => {
+      if (data.start_date && actionStartDate) {
+        const breakdownStart = new Date(data.start_date)
+        const actionStart = new Date(actionStartDate)
+        return breakdownStart >= actionStart
+      }
+      return true
+    }, {
+      message: 'A data de início não pode ser anterior à data de início do plano de ação',
+      path: ['start_date'],
+    })
+    .refine((data) => {
+      if (data.end_date && actionEndDate) {
+        const breakdownEnd = new Date(data.end_date)
+        const actionEnd = new Date(actionEndDate)
+        return breakdownEnd <= actionEnd
+      }
+      return true
+    }, {
+      message: 'A data de término não pode ser posterior à data de término do plano de ação',
+      path: ['end_date'],
+    })
+}

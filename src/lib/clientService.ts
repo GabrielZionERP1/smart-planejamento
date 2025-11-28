@@ -1,4 +1,5 @@
 import { supabaseClient } from './supabaseClient'
+import { getCurrentUserCompanyId } from './auth'
 
 export interface Client {
   id: string
@@ -32,11 +33,18 @@ export interface ClientFormData {
  */
 export async function getClients(): Promise<Client[]> {
   const supabase = supabaseClient
+  const companyId = await getCurrentUserCompanyId()
   
-  const { data, error } = await supabase
+  let query = supabase
     .from('clients')
     .select('*')
     .order('nome', { ascending: true })
+
+  if (companyId) {
+    query = query.eq('company_id', companyId)
+  }
+
+  const { data, error } = await query
   
   if (error) {
     console.error('Erro ao buscar clientes:', error)
@@ -71,6 +79,7 @@ export async function getClientById(id: string): Promise<Client | null> {
  */
 export async function createClient(formData: ClientFormData): Promise<Client> {
   const supabase = supabaseClient
+  const companyId = await getCurrentUserCompanyId()
   
   const { data, error } = await supabase
     .from('clients')
@@ -84,6 +93,7 @@ export async function createClient(formData: ClientFormData): Promise<Client> {
       cep: formData.cep || null,
       cnpj_cpf: formData.cnpj_cpf || null,
       observacoes: formData.observacoes || null,
+      company_id: companyId,
     }])
     .select()
     .single()

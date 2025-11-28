@@ -9,7 +9,8 @@ import {
   Target, 
   Users,
   Building2,
-  UserCog
+  UserCog,
+  ShieldCheck
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEffect, useState } from 'react'
@@ -28,13 +29,13 @@ const mainNavItems: NavItem[] = [
     title: 'Dashboard',
     href: '/',
     icon: LayoutDashboard,
-    roles: ['admin', 'gestor', 'usuario'],
+    roles: ['superadmin', 'admin', 'gestor', 'usuario'],
   },
   {
     title: 'Planejamentos',
     href: '/plans',
     icon: FolderKanban,
-    roles: ['admin', 'gestor', 'usuario'],
+    roles: ['superadmin', 'admin', 'gestor', 'usuario'],
   },
 ]
 
@@ -43,19 +44,28 @@ const settingsNavItems: NavItem[] = [
     title: 'Usuários',
     href: '/settings/users',
     icon: Users,
-    roles: ['admin'],
+    roles: ['superadmin', 'admin'],
   },
   {
     title: 'Departamentos',
     href: '/settings/departments',
     icon: Building2,
-    roles: ['admin'],
+    roles: ['superadmin', 'admin'],
   },
+  // {
+  //   title: 'Clientes',
+  //   href: '/settings/clients',
+  //   icon: UserCog,
+  //   roles: ['superadmin', 'admin'],
+  // },
+]
+
+const superAdminNavItems: NavItem[] = [
   {
-    title: 'Clientes',
-    href: '/settings/clients',
-    icon: UserCog,
-    roles: ['admin'],
+    title: 'Gerenciar Empresas',
+    href: '/admin/companies',
+    icon: ShieldCheck,
+    roles: ['superadmin'],
   },
 ]
 
@@ -65,8 +75,17 @@ export function AppSidebar() {
 
   useEffect(() => {
     async function loadProfile() {
-      const profile = await getCurrentUserProfile()
-      setUserProfile(profile)
+      try {
+        const profile = await getCurrentUserProfile()
+        if (profile) {
+          console.log('✅ AppSidebar: Profile carregado:', profile.role)
+          setUserProfile(profile)
+        } else {
+          console.warn('⚠️ AppSidebar: Profile não encontrado')
+        }
+      } catch (error) {
+        console.error('❌ AppSidebar: Erro ao carregar profile:', error)
+      }
     }
     loadProfile()
   }, [])
@@ -115,8 +134,39 @@ export function AppSidebar() {
               })}
           </div>
 
-          {/* Settings Section - Only for admin */}
-          {userProfile?.role === 'admin' && (
+          {/* SuperAdmin Section - Only for superadmin */}
+          {userProfile?.role === 'superadmin' && (
+            <div className="pt-6">
+              <div className="mb-2 px-3 text-xs font-semibold uppercase text-muted-foreground">
+                SuperAdmin
+              </div>
+              <div className="space-y-1">
+                {superAdminNavItems.map((item) => {
+                  const Icon = item.icon
+                  const isActive = pathname === item.href
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        'flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                        isActive
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                      )}
+                    >
+                      <Icon className="h-5 w-5" />
+                      <span>{item.title}</span>
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Settings Section - For admin and superadmin */}
+          {(userProfile?.role === 'admin' || userProfile?.role === 'superadmin') && (
             <div className="pt-6">
               <div className="mb-2 px-3 text-xs font-semibold uppercase text-muted-foreground">
                 Configurações

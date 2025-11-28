@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client'
+import { getCurrentUserCompanyId } from './auth'
 import {
   UserDashboardData,
   ManagerDashboardData,
@@ -21,6 +22,7 @@ import {
 export async function getUserDashboardData(userId: string): Promise<UserDashboardData> {
   try {
     const supabase = createClient()
+    const companyId = await getCurrentUserCompanyId()
     const today = new Date().toISOString().split('T')[0]
 
     // Buscar perfil do usuário para pegar department_id
@@ -33,25 +35,43 @@ export async function getUserDashboardData(userId: string): Promise<UserDashboar
     const departmentId = profile?.department_id
 
     // 1. Total de planejamentos (onde o usuário é criador ou do mesmo departamento)
-    const { count: totalPlans } = await supabase
+    let plansQuery = supabase
       .from('strategic_plans')
       .select('*', { count: 'exact', head: true })
       .or(`created_by.eq.${userId}${departmentId ? `,department_id.eq.${departmentId}` : ''}`)
 
+    if (companyId) {
+      plansQuery = plansQuery.eq('company_id', companyId)
+    }
+
+    const { count: totalPlans } = await plansQuery
+
     // 2. Total de planos de ação onde é owner
-    const { count: totalActionPlans } = await supabase
+    let actionPlansQuery = supabase
       .from('action_plans')
       .select('*', { count: 'exact', head: true })
       .eq('owner_id', userId)
+
+    if (companyId) {
+      actionPlansQuery = actionPlansQuery.eq('company_id', companyId)
+    }
+
+    const { count: totalActionPlans } = await actionPlansQuery
 
     // 3. Total de desdobramentos onde é executor
-    const { count: totalBreakdowns } = await supabase
+    let breakdownsQuery = supabase
       .from('action_breakdowns')
       .select('*', { count: 'exact', head: true })
       .eq('executor_id', userId)
 
+    if (companyId) {
+      breakdownsQuery = breakdownsQuery.eq('company_id', companyId)
+    }
+
+    const { count: totalBreakdowns } = await breakdownsQuery
+
     // 4. Próximas tarefas (planos de ação + desdobramentos com prazos próximos)
-    const { data: upcomingActionPlans } = await supabase
+    let upcomingActionPlansQuery = supabase
       .from('action_plans')
       .select('id, title, end_date, status')
       .eq('owner_id', userId)
@@ -59,13 +79,25 @@ export async function getUserDashboardData(userId: string): Promise<UserDashboar
       .order('end_date', { ascending: true })
       .limit(5)
 
-    const { data: upcomingBreakdowns } = await supabase
+    if (companyId) {
+      upcomingActionPlansQuery = upcomingActionPlansQuery.eq('company_id', companyId)
+    }
+
+    const { data: upcomingActionPlans } = await upcomingActionPlansQuery
+
+    let upcomingBreakdownsQuery = supabase
       .from('action_breakdowns')
       .select('id, title, end_date, status')
       .eq('executor_id', userId)
       .gte('end_date', today)
       .order('end_date', { ascending: true })
       .limit(5)
+
+    if (companyId) {
+      upcomingBreakdownsQuery = upcomingBreakdownsQuery.eq('company_id', companyId)
+    }
+
+    const { data: upcomingBreakdowns } = await upcomingBreakdownsQuery
 
     const upcomingTasks: UpcomingTask[] = [
       ...(upcomingActionPlans || []).map((task) => ({
@@ -88,19 +120,31 @@ export async function getUserDashboardData(userId: string): Promise<UserDashboar
       .slice(0, 10)
 
     // 5. Tarefas atrasadas
-    const { count: lateActionPlans } = await supabase
+    let lateActionPlansQuery = supabase
       .from('action_plans')
       .select('*', { count: 'exact', head: true })
       .eq('owner_id', userId)
       .lt('end_date', today)
       .neq('status', 'concluido')
 
-    const { count: lateBreakdowns } = await supabase
+    if (companyId) {
+      lateActionPlansQuery = lateActionPlansQuery.eq('company_id', companyId)
+    }
+
+    const { count: lateActionPlans } = await lateActionPlansQuery
+
+    let lateBreakdownsQuery = supabase
       .from('action_breakdowns')
       .select('*', { count: 'exact', head: true })
       .eq('executor_id', userId)
       .lt('end_date', today)
       .eq('is_completed', false)
+
+    if (companyId) {
+      lateBreakdownsQuery = lateBreakdownsQuery.eq('company_id', companyId)
+    }
+
+    const { count: lateBreakdowns } = await lateBreakdownsQuery
 
     return {
       total_plans: totalPlans || 0,
@@ -122,31 +166,62 @@ export async function getUserDashboardData(userId: string): Promise<UserDashboar
 export async function getManagerDashboardData(): Promise<ManagerDashboardData> {
   try {
     const supabase = createClient()
+    const companyId = await getCurrentUserCompanyId()
 
     // 1. Total de planejamentos
-    const { count: totalPlans } = await supabase
+    let plansQuery = supabase
       .from('strategic_plans')
       .select('*', { count: 'exact', head: true })
 
+    if (companyId) {
+      plansQuery = plansQuery.eq('company_id', companyId)
+    }
+
+    const { count: totalPlans } = await plansQuery
+
     // 2. Total de objetivos
-    const { count: totalObjectives } = await supabase
+    let objectivesQuery = supabase
       .from('objectives')
       .select('*', { count: 'exact', head: true })
 
+    if (companyId) {
+      objectivesQuery = objectivesQuery.eq('company_id', companyId)
+    }
+
+    const { count: totalObjectives } = await objectivesQuery
+
     // 3. Total de planos de ação
-    const { count: totalActionPlans } = await supabase
+    let actionPlansQuery = supabase
       .from('action_plans')
       .select('*', { count: 'exact', head: true })
 
+    if (companyId) {
+      actionPlansQuery = actionPlansQuery.eq('company_id', companyId)
+    }
+
+    const { count: totalActionPlans } = await actionPlansQuery
+
     // 4. Total de desdobramentos
-    const { count: totalBreakdowns } = await supabase
+    let breakdownsQuery = supabase
       .from('action_breakdowns')
       .select('*', { count: 'exact', head: true })
 
+    if (companyId) {
+      breakdownsQuery = breakdownsQuery.eq('company_id', companyId)
+    }
+
+    const { count: totalBreakdowns } = await breakdownsQuery
+
     // 5. Progresso global (média de progress dos action_plans)
-    const { data: actionPlansProgress } = await supabase
+    let progressQuery = supabase
       .from('action_plans')
       .select('progress')
+
+    if (companyId) {
+      progressQuery = progressQuery.eq('company_id', companyId)
+    }
+
+    const { data: actionPlansProgress } = await progressQuery
 
     const globalProgress =
       actionPlansProgress && actionPlansProgress.length > 0
@@ -155,18 +230,30 @@ export async function getManagerDashboardData(): Promise<ManagerDashboardData> {
         : 0
 
     // 6. Ranking de departamentos por progresso
-    const { data: departments } = await supabase
+    let departmentsQuery = supabase
       .from('departments')
       .select('id, name')
+
+    if (companyId) {
+      departmentsQuery = departmentsQuery.eq('company_id', companyId)
+    }
+
+    const { data: departments } = await departmentsQuery
 
     const departmentRanking: DepartmentRanking[] = []
 
     if (departments) {
       for (const dept of departments) {
-        const { data: deptActionPlans } = await supabase
+        let deptActionPlansQuery = supabase
           .from('action_plans')
           .select('progress')
           .eq('department_id', dept.id)
+
+        if (companyId) {
+          deptActionPlansQuery = deptActionPlansQuery.eq('company_id', companyId)
+        }
+
+        const { data: deptActionPlans } = await deptActionPlansQuery
 
         const avgProgress =
           deptActionPlans && deptActionPlans.length > 0
@@ -194,9 +281,15 @@ export async function getManagerDashboardData(): Promise<ManagerDashboardData> {
     }
 
     // Contar status dos action_plans
-    const { data: actionPlansStatus } = await supabase
+    let actionPlansStatusQuery = supabase
       .from('action_plans')
       .select('status')
+
+    if (companyId) {
+      actionPlansStatusQuery = actionPlansStatusQuery.eq('company_id', companyId)
+    }
+
+    const { data: actionPlansStatus } = await actionPlansStatusQuery
 
     if (actionPlansStatus) {
       actionPlansStatus.forEach((plan: { status: string }) => {
@@ -207,9 +300,15 @@ export async function getManagerDashboardData(): Promise<ManagerDashboardData> {
     }
 
     // Contar status dos breakdowns
-    const { data: breakdownsStatus } = await supabase
+    let breakdownsStatusQuery = supabase
       .from('action_breakdowns')
       .select('status')
+
+    if (companyId) {
+      breakdownsStatusQuery = breakdownsStatusQuery.eq('company_id', companyId)
+    }
+
+    const { data: breakdownsStatus } = await breakdownsStatusQuery
 
     if (breakdownsStatus) {
       breakdownsStatus.forEach((breakdown: { status: string }) => {
@@ -224,18 +323,30 @@ export async function getManagerDashboardData(): Promise<ManagerDashboardData> {
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
     const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0]
 
-    const { count: criticalActionPlans } = await supabase
+    let criticalActionPlansQuery = supabase
       .from('action_plans')
       .select('*', { count: 'exact', head: true })
       .lt('end_date', sevenDaysAgoStr)
       .neq('status', 'concluido')
       .neq('status', 'cancelado')
 
-    const { count: criticalBreakdowns } = await supabase
+    if (companyId) {
+      criticalActionPlansQuery = criticalActionPlansQuery.eq('company_id', companyId)
+    }
+
+    const { count: criticalActionPlans } = await criticalActionPlansQuery
+
+    let criticalBreakdownsQuery = supabase
       .from('action_breakdowns')
       .select('*', { count: 'exact', head: true })
       .lt('end_date', sevenDaysAgoStr)
       .eq('is_completed', false)
+
+    if (companyId) {
+      criticalBreakdownsQuery = criticalBreakdownsQuery.eq('company_id', companyId)
+    }
+
+    const { count: criticalBreakdowns } = await criticalBreakdownsQuery
 
     return {
       total_plans: totalPlans || 0,
@@ -260,6 +371,7 @@ export async function getManagerDashboardData(): Promise<ManagerDashboardData> {
 export async function getPlanOverview(planId: string): Promise<PlanOverview> {
   try {
     const supabase = createClient()
+    const companyId = await getCurrentUserCompanyId()
     
     // 1. Buscar informações do plano
     const { data: plan } = await supabase
@@ -269,22 +381,40 @@ export async function getPlanOverview(planId: string): Promise<PlanOverview> {
       .single()
 
     // 2. Contar objetivos
-    const { count: objectivesCount } = await supabase
+    let objectivesQuery = supabase
       .from('objectives')
       .select('*', { count: 'exact', head: true })
       .eq('plan_id', planId)
 
+    if (companyId) {
+      objectivesQuery = objectivesQuery.eq('company_id', companyId)
+    }
+
+    const { count: objectivesCount } = await objectivesQuery
+
     // 3. Contar planos de ação
-    const { count: actionPlansCount } = await supabase
+    let actionPlansCountQuery = supabase
       .from('action_plans')
       .select('*', { count: 'exact', head: true })
       .eq('plan_id', planId)
 
+    if (companyId) {
+      actionPlansCountQuery = actionPlansCountQuery.eq('company_id', companyId)
+    }
+
+    const { count: actionPlansCount } = await actionPlansCountQuery
+
     // 4. Buscar planos de ação para calcular progresso
-    const { data: actionPlans } = await supabase
+    let actionPlansQuery = supabase
       .from('action_plans')
       .select('id, progress')
       .eq('plan_id', planId)
+
+    if (companyId) {
+      actionPlansQuery = actionPlansQuery.eq('company_id', companyId)
+    }
+
+    const { data: actionPlans } = await actionPlansQuery
 
     const progress =
       actionPlans && actionPlans.length > 0
@@ -298,19 +428,31 @@ export async function getPlanOverview(planId: string): Promise<PlanOverview> {
 
     if (actionPlans) {
       for (const actionPlan of actionPlans) {
-        const { count } = await supabase
+        let breakdownsCountQuery = supabase
           .from('action_breakdowns')
           .select('*', { count: 'exact', head: true })
           .eq('action_plan_id', actionPlan.id)
 
+        if (companyId) {
+          breakdownsCountQuery = breakdownsCountQuery.eq('company_id', companyId)
+        }
+
+        const { count } = await breakdownsCountQuery
+
         breakdownsCount += count || 0
 
-        const { count: lateCount } = await supabase
+        let lateBreakdownsQuery = supabase
           .from('action_breakdowns')
           .select('*', { count: 'exact', head: true })
           .eq('action_plan_id', actionPlan.id)
           .lt('end_date', today)
           .eq('is_completed', false)
+
+        if (companyId) {
+          lateBreakdownsQuery = lateBreakdownsQuery.eq('company_id', companyId)
+        }
+
+        const { count: lateCount } = await lateBreakdownsQuery
 
         lateBreakdowns += lateCount || 0
       }
@@ -325,10 +467,16 @@ export async function getPlanOverview(planId: string): Promise<PlanOverview> {
 
     if (actionPlans) {
       for (const actionPlan of actionPlans) {
-        const { data: breakdowns } = await supabase
+        let breakdownsEffortQuery = supabase
           .from('action_breakdowns')
           .select('effort')
           .eq('action_plan_id', actionPlan.id)
+
+        if (companyId) {
+          breakdownsEffortQuery = breakdownsEffortQuery.eq('company_id', companyId)
+        }
+
+        const { data: breakdowns } = await breakdownsEffortQuery
 
         if (breakdowns) {
           breakdowns.forEach((breakdown: { effort: number }) => {

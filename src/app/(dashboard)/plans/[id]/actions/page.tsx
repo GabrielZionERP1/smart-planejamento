@@ -253,6 +253,8 @@ export default function ActionsPage() {
               <div className="px-6 pb-6 mt-6">
                 <ActionPlanForm
                   objectives={objectives}
+                  planStartDate={plan?.start_date}
+                  planEndDate={plan?.end_date}
                   initialData={editingAction ? {
                     title: editingAction.title,
                     objective_id: editingAction.objective_id || '',

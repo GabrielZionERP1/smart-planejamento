@@ -1,4 +1,5 @@
 import { createClient } from './supabase/client'
+import { getCurrentUserCompanyId } from './auth'
 
 // Criar cliente Supabase com sessão do usuário
 function getSupabaseClient() {
@@ -22,12 +23,21 @@ export interface ObjectiveUpdatePayload {
  */
 export async function getObjectives(plan_id: string) {
   const supabase = getSupabaseClient()
-  const { data, error } = await supabase
+  const companyId = await getCurrentUserCompanyId()
+  
+  let query = supabase
     .from('objectives')
     .select('*')
     .eq('plan_id', plan_id)
     .order('position', { ascending: true })
     .order('created_at', { ascending: true })
+
+  // Filtrar por empresa se o usuário tiver company_id
+  if (companyId) {
+    query = query.eq('company_id', companyId)
+  }
+
+  const { data, error } = await query
 
   if (error) {
     throw new Error(error.message || 'Erro ao buscar objetivos')
@@ -41,6 +51,7 @@ export async function getObjectives(plan_id: string) {
  */
 export async function createObjective(plan_id: string, payload: ObjectivePayload) {
   const supabase = getSupabaseClient()
+  const companyId = await getCurrentUserCompanyId()
   
   // Busca a maior posição atual para adicionar no final
   const { data: maxPosition } = await supabase
@@ -61,6 +72,7 @@ export async function createObjective(plan_id: string, payload: ObjectivePayload
       summary: payload.summary || null,
       position: newPosition,
       status: 'ativo',
+      company_id: companyId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })

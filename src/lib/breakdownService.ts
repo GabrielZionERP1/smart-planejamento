@@ -1,4 +1,5 @@
 import { createClient } from './supabase/client'
+import { getCurrentUserCompanyId } from './auth'
 
 // Criar cliente Supabase com sessão do usuário
 function getSupabaseClient() {
@@ -52,11 +53,19 @@ export async function getBreakdownsByActionPlan(
   action_plan_id: string
 ): Promise<ActionBreakdown[]> {
   const supabase = getSupabaseClient()
-  const { data, error } = await supabase
+  const companyId = await getCurrentUserCompanyId()
+  
+  let query = supabase
     .from('action_breakdowns')
     .select('*')
     .eq('action_plan_id', action_plan_id)
     .order('created_at', { ascending: true })
+
+  if (companyId) {
+    query = query.eq('company_id', companyId)
+  }
+
+  const { data, error } = await query
 
   if (error) {
     throw new Error(`Erro ao buscar desdobramentos: ${error.message}`)
@@ -94,6 +103,8 @@ export async function createBreakdown(
   payload: CreateBreakdownPayload
 ): Promise<ActionBreakdown> {
   const supabase = getSupabaseClient()
+  const companyId = await getCurrentUserCompanyId()
+  
   const { data, error } = await supabase
     .from('action_breakdowns')
     .insert({
@@ -107,6 +118,7 @@ export async function createBreakdown(
       effort: payload.effort || 1,
       status: payload.status || 'nao_iniciado',
       is_completed: false,
+      company_id: companyId,
     })
     .select()
     .single()

@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { Plus, Pencil, Trash2, CheckCircle2, Circle, Clock, Calendar, Eye } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Plus, Pencil, Trash2, CheckCircle2, Circle, Clock, Calendar, Eye, History, Paperclip } from 'lucide-react'
 import { 
   getBreakdownsByActionPlan, 
   createBreakdown, 
@@ -15,7 +16,11 @@ import {
   ActionBreakdown,
   CreateBreakdownPayload 
 } from '@/lib/breakdownService'
+import { getActionPlanById } from '@/lib/actionPlanService'
+import { ActionPlan } from '@/lib/types'
 import { BreakdownForm } from './BreakdownForm'
+import { BreakdownHistory } from './BreakdownHistory'
+import { BreakdownAttachments } from './BreakdownAttachments'
 import { useToast } from '@/components/ui/use-toast'
 import { formatDate } from '@/lib/utils/date'
 import { 
@@ -46,17 +51,24 @@ export function BreakdownList({ actionPlanId, planId, canEdit = true }: Breakdow
   const router = useRouter()
   const { toast } = useToast()
   const [breakdowns, setBreakdowns] = useState<ActionBreakdown[]>([])
+  const [actionPlan, setActionPlan] = useState<ActionPlan | null>(null)
   const [loading, setLoading] = useState(true)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [editingBreakdown, setEditingBreakdown] = useState<ActionBreakdown | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [historyBreakdownId, setHistoryBreakdownId] = useState<string | null>(null)
+  const [attachmentsBreakdownId, setAttachmentsBreakdownId] = useState<string | null>(null)
 
   async function loadBreakdowns() {
     try {
       setLoading(true)
-      const data = await getBreakdownsByActionPlan(actionPlanId)
-      setBreakdowns(data)
+      const [breakdownsData, actionData] = await Promise.all([
+        getBreakdownsByActionPlan(actionPlanId),
+        getActionPlanById(actionPlanId)
+      ])
+      setBreakdowns(breakdownsData)
+      setActionPlan(actionData)
     } catch (error) {
       toast({
         title: 'Erro',
@@ -243,9 +255,25 @@ export function BreakdownList({ actionPlanId, planId, canEdit = true }: Breakdow
                             variant="ghost"
                             size="icon"
                             onClick={() => router.push(`/plans/${planId}/actions/${actionPlanId}/breakdowns/${breakdown.id}`)}
-                            title="Ver detalhes, histórico e anexos"
+                            title="Ver detalhes completos"
                           >
                             <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setHistoryBreakdownId(breakdown.id)}
+                            title="Ver histórico e comentários"
+                          >
+                            <History className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setAttachmentsBreakdownId(breakdown.id)}
+                            title="Ver anexos"
+                          >
+                            <Paperclip className="h-4 w-4" />
                           </Button>
                           {canEdit && (
                             <>
@@ -253,6 +281,7 @@ export function BreakdownList({ actionPlanId, planId, canEdit = true }: Breakdow
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => openEditSheet(breakdown)}
+                                title="Editar desdobramento"
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>
@@ -260,6 +289,7 @@ export function BreakdownList({ actionPlanId, planId, canEdit = true }: Breakdow
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => setDeletingId(breakdown.id)}
+                                title="Excluir desdobramento"
                               >
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
@@ -324,6 +354,8 @@ export function BreakdownList({ actionPlanId, planId, canEdit = true }: Breakdow
             <BreakdownForm
               onSubmit={editingBreakdown ? handleUpdate : handleCreate}
               onCancel={closeSheet}
+              actionStartDate={actionPlan?.start_date}
+              actionEndDate={actionPlan?.end_date}
               initialData={editingBreakdown ? {
                 title: editingBreakdown.title,
                 executor_id: editingBreakdown.executor_id || '',
@@ -360,6 +392,30 @@ export function BreakdownList({ actionPlanId, planId, canEdit = true }: Breakdow
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dialog de Histórico */}
+      <Dialog open={!!historyBreakdownId} onOpenChange={() => setHistoryBreakdownId(null)}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Histórico & Comentários</DialogTitle>
+          </DialogHeader>
+          {historyBreakdownId && (
+            <BreakdownHistory breakdownId={historyBreakdownId} canEdit={canEdit} />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Anexos */}
+      <Dialog open={!!attachmentsBreakdownId} onOpenChange={() => setAttachmentsBreakdownId(null)}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Anexos do Desdobramento</DialogTitle>
+          </DialogHeader>
+          {attachmentsBreakdownId && (
+            <BreakdownAttachments breakdownId={attachmentsBreakdownId} canEdit={canEdit} />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

@@ -17,6 +17,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "SMART - Sistema de Planejamento Estratégico",
   description: "Sistema completo de gestão de planejamento estratégico",
+  icons: {
+    icon: '/logosmart.png',
+    shortcut: '/logosmart.png',
+    apple: '/logosmart.png',
+  },
 };
 
 export default function RootLayout({

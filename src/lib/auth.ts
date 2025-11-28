@@ -79,3 +79,50 @@ export async function isAuthenticated(): Promise<boolean> {
     return false
   }
 }
+
+/**
+ * Obtém o perfil completo do usuário autenticado incluindo company_id
+ */
+export async function getCurrentUserProfile() {
+  const supabase = createClient()
+  
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  
+  if (userError || !user) {
+    console.error('❌ auth.ts: Erro ao obter usuário:', userError)
+    return null
+  }
+
+  console.log('👤 auth.ts: Buscando profile para user:', user.id)
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
+
+  if (profileError) {
+    console.error('❌ auth.ts: Erro ao buscar perfil:', profileError)
+    console.error('❌ auth.ts: User ID:', user.id)
+    console.error('❌ auth.ts: User Email:', user.email)
+    console.error('❌ auth.ts: ERRO CRÍTICO - Profile não existe para este usuário!')
+    return null
+  }
+
+  console.log('✅ auth.ts: Profile encontrado:', {
+    id: profile.id,
+    email: profile.email,
+    role: profile.role,
+    company_id: profile.company_id
+  })
+
+  return profile
+}
+
+/**
+ * Obtém o company_id do usuário autenticado
+ */
+export async function getCurrentUserCompanyId(): Promise<string | null> {
+  const profile = await getCurrentUserProfile()
+  return profile?.company_id || null
+}

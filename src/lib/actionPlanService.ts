@@ -1,15 +1,24 @@
 import { supabaseClient } from './supabaseClient'
 import { ActionPlan, ActionPlanParticipant } from './types'
+import { getCurrentUserCompanyId } from './auth'
 
 /**
  * Busca todos os planos de ação de um planejamento estratégico
  */
 export async function getActionPlans(planId: string): Promise<ActionPlan[]> {
-  const { data, error } = await supabaseClient
+  const companyId = await getCurrentUserCompanyId()
+  
+  let query = supabaseClient
     .from('action_plans')
     .select('*')
     .eq('plan_id', planId)
     .order('created_at', { ascending: false })
+
+  if (companyId) {
+    query = query.eq('company_id', companyId)
+  }
+
+  const { data, error } = await query
 
   if (error) {
     throw new Error(`Erro ao buscar planos de ação: ${error.message}`)
@@ -51,6 +60,8 @@ export async function createActionPlan(payload: {
   start_date?: string
   end_date?: string
 }): Promise<ActionPlan> {
+  const companyId = await getCurrentUserCompanyId()
+  
   const { data, error } = await supabaseClient
     .from('action_plans')
     .insert({
@@ -64,6 +75,7 @@ export async function createActionPlan(payload: {
       end_date: payload.end_date || null,
       status: 'nao_iniciado',
       progress: 0,
+      company_id: companyId,
     })
     .select()
     .single()

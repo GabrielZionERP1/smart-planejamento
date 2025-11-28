@@ -102,8 +102,8 @@ export default function UsersPage() {
     try {
       await inviteUser(formData)
       toast({
-        title: 'Convite enviado',
-        description: 'Um e-mail de convite foi enviado para o usuário',
+        title: 'Usuário criado',
+        description: 'O usuário foi criado com sucesso e já pode fazer login',
       })
       setIsSheetOpen(false)
       await loadUsers()
@@ -168,7 +168,7 @@ export default function UsersPage() {
 
         <Button onClick={() => setIsSheetOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          Convidar Usuário
+          Novo Usuário
         </Button>
       </div>
 
@@ -176,12 +176,12 @@ export default function UsersPage() {
         <SheetContent className="overflow-y-auto">
           <SheetHeader className="px-6 pt-6">
             <SheetTitle>
-              {editingUser ? 'Editar Usuário' : 'Convidar Novo Usuário'}
+              {editingUser ? 'Editar Usuário' : 'Criar Novo Usuário'}
             </SheetTitle>
             <SheetDescription>
               {editingUser
                 ? 'Atualize as informações e permissões do usuário'
-                : 'Envie um convite por e-mail para um novo usuário'}
+                : 'Crie um novo usuário com acesso imediato ao sistema'}
             </SheetDescription>
           </SheetHeader>
           <div className="px-6 pb-6 mt-6">

@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { FormField, TextareaField, SelectField } from '@/components/ui/FormField'
 import { AlertCircle } from 'lucide-react'
-import { breakdownSchema, BreakdownSchema } from '@/lib/schemas'
+import { breakdownSchema, BreakdownSchema, createBreakdownSchemaWithDateValidation } from '@/lib/schemas'
 import { Profile } from '@/lib/types'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
@@ -17,6 +17,8 @@ interface BreakdownFormProps {
   loading?: boolean
   currentUser: Profile | null
   canEdit?: boolean
+  actionStartDate?: string | null
+  actionEndDate?: string | null
 }
 
 export function BreakdownForm({
@@ -27,13 +29,19 @@ export function BreakdownForm({
   loading = false,
   currentUser,
   canEdit = true,
+  actionStartDate,
+  actionEndDate,
 }: BreakdownFormProps) {
+  const schema = actionStartDate || actionEndDate
+    ? createBreakdownSchemaWithDateValidation(actionStartDate, actionEndDate)
+    : breakdownSchema
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(breakdownSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       title: initialData?.title || '',
       executor_id: initialData?.executor_id || '',
